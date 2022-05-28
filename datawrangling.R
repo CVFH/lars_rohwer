@@ -53,26 +53,17 @@ data_insta_completa <- data_insta_completa %>%
   mutate(datahoraposi = as.POSIXct(datahora, format.str, tz = "GMT"))
 
 # GUARDO ############
-data_insta_completa %>%  write.csv("data_insta_completa.csv")
+#data_insta_completa %>%  write.csv("data_insta_completa.csv")
 
-
-########### 
-# TRABAJO CON TOKENS #######
-
-
-palabras_a_borrar <- stopwords("german")  # de tm. funciona mejor
-
-# cuerpo de nota 
-
-df_tokens_insta <-  data_insta_completa %>% 
-  unnest_tokens(output = tokens, input = texto)  %>%  
-  filter(!(tokens %in% palabras_a_borrar))
 
 
 
 #####################################
 # TRABAJO CON DATA FACEBOOK ################
 
+format.str <- "%Y-%m-%dT%H:%M:%S"
+data_fb <- data_fb %>% 
+  mutate(datahoraposi = as.POSIXct(datahora, format.str, tz = "GMT"))
 
 # probandola 
 
@@ -80,16 +71,57 @@ test <- data_fb %>% subset(duplicated(TEXTO))
 # CREO METADATA #####
 
 metadata <- data_insta_completa %>% 
-  select(POSTID, FOTO, img_word, pro_spon, TEMA1, TEMA2, N_FOTOS, Grund)
+  select(POSTID, FOTO, img_word, pro_spon, TEMA1, TEMA2, N_FOTOS, Grund, datahoraposi) %>% 
+  subset(!is.na(FOTO)) %>% 
+  mutate(datadate = as.Date(datahoraposi)) %>% 
+  select(-datahoraposi)
 
-data_facebook_completa1 <- data_fb  %>% 
+dafa_fb_cid <- data_fb  %>% 
   mutate(POSTID = str_sub(TEXTO, 7, end = 16)) %>% 
   rename("texto" = TEXTO) %>% 
+  mutate(datadate = as.Date(datahoraposi)) 
+
+test <- dafa_fb_cid %>% subset(duplicated(POSTID))
+test <- metadata %>% subset(duplicated(POSTID))
+
+data_facebook_completa1 <- dafa_fb_cid  %>% 
   left_join(metadata)
 
-data_facebook_completa2 <- data_fb %>% 
-  rename("POSTID" = TEXTO) %>%
-     fuzzy_left_join(metadata, match_fun = str_detect)
+# hay algunos repetidos pero quede conforme
+
+# guardo
+
+#data_facebook_completa1 %>%  write.csv("data_facebook_completa.csv")
+
+########################################## 
+########################################### 
+############################################  
+
+# TRABAJO CON TOKENS #######
+
+# importo data ya trabajada en lo anterior ############
+
+data_insta_completa <- read.csv("data_insta_completa.csv")
+data_facebook_completa <- read.csv("data_facebook_completa.csv")
+
+palabras_a_borrar <- stopwords("german")  # de tm. funciona mejor
+
+# insta , creo y guardo
+
+df_tokens_insta <-  data_insta_completa %>% 
+  unnest_tokens(output = tokens, input = texto)  %>%  
+  filter(!(tokens %in% palabras_a_borrar))
+
+#df_tokens_insta %>%  write.csv("tokens_instagram.csv")
+
+# fb 
+
+df_tokens_fb <-  data_facebook_completa %>% 
+  unnest_tokens(output = tokens, input = texto)  %>%  
+  filter(!(tokens %in% palabras_a_borrar))
+
+#df_tokens_fb %>%  write.csv("tokens_facebook.csv")
+
 # # BORRADORES ########
 # # otros intentos de ID descartados
 # 
@@ -133,3 +165,7 @@ data_facebook_completa2 <- data_fb %>%
 # 
 # #test <- data_manual$POSTID %>% duplicated() 
 # #sum(test)
+
+# data_facebook_completa2 <- data_fb %>% 
+#   rename("POSTID" = TEXTO) %>%
+#      fuzzy_left_join(metadata, match_fun = str_detect)

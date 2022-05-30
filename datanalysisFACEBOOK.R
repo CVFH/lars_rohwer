@@ -27,6 +27,12 @@ data_facebook_agregada <- data_facebook_agregada %>%
 data_facebook_long <- data_facebook_completa %>% 
   pivot_longer(cols = c(LIKES, comments, cliks, compartida), names_to = "reaccion", values_to = "n_reaccion")
 
+
+data_facebook_engagement <- data_facebook_completa %>% 
+  mutate(engagement = LIKES + comments + compartida,
+         engagement_plus = engagement + cliks,
+         engagement_plusplus = engagement_plus + Alcance)
+
 # DESCRIPTIVO UNIVARIADO: LIKES ###########
 
 plot_fotos <- data_facebook_long %>% 
@@ -403,3 +409,39 @@ leasttop_posts_facebook <- data_facebook_post %>%
   tail(15)
 
 leasttop_posts_facebook %>% write.csv("leasttop15fb.csv")
+
+#### posts por hora ######
+
+data_facebook_engagement  <- data_facebook_engagement %>% 
+  mutate(hora = hms::as_hms(hora)) %>% 
+  mutate(horario = hour(hora))
+
+evdata_facebook_time <- data_facebook_engagement %>% 
+  group_by(horario) %>% 
+  summarise(mean_engagement = mean(engagement, na.rm = T),
+            posts = n(),
+            suma_engagement = sum(engagement, na.rm = T))
+
+evdata_facebook_time %>% write.csv("evdata_facebook_time.csv")
+
+plot_evdata_facebook_time <- evdata_facebook_time %>% 
+  ggplot() +
+ # geom_line(aes(horario, suma_engagement), colour = "blue") +
+  geom_line(aes(horario, mean_engagement), colour = "red") +
+  geom_line(aes(horario, posts), colour = "grey") +
+  theme_minimal()
+
+ggsave("images/fb_evdata_facebook_time.png", bg = "white")
+
+### algunas cuentas con engagement. hay correlaciones? ##########
+
+
+df_fbfiltered <- data_facebook_engagement %>% 
+  select(c(
+    engagement,
+    engagement_plus, 
+    engagement_plusplus, 
+  ))
+
+cortest <- cor(df_fbfiltered, method = "pearson", use = "complete.obs") 
+

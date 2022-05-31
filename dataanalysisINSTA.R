@@ -17,7 +17,8 @@ data_insta_completa <- read.csv("data_insta_completa.csv")
 # mini correcciones #####
 
 data_insta_completa <- data_insta_completa %>% 
-  mutate(Grund = ifelse(Grund=="böse", "Diskussion", Grund))  %>% 
+  mutate(Grund = ifelse(Grund=="böse", "Diskussion", Grund)) %>% 
+  mutate(pro_spon = ifelse(pro_spon=="Profesional", "Professionell", pro_spon)) %>% 
   mutate(across(where(is.character), ~str_to_title(.)))
 
 # DESCRIPTIVO UNIVARIADO: LIKES ###########

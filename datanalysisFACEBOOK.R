@@ -36,7 +36,8 @@ data_facebook_completa <- data_facebook_completa %>%
 
 data_facebook_long <- data_facebook_completa %>% 
   pivot_longer(cols = c(LIKES, comments, cliks, compartida), names_to = "reaccion", values_to = "n_reaccion") %>% 
-  mutate(across(where(is.character), ~str_to_title(.)))
+  mutate(across(where(is.character), ~str_to_title(.))) %>% 
+  mutate(pro_spon = ifelse(pro_spon=="Profesional", "Professionell", pro_spon))
 
 
 data_facebook_engagement <- data_facebook_completa %>% 
@@ -257,7 +258,7 @@ plot_FOTO_n <- data_facebook_long %>%
         text = element_text(size = 16) ) + 
   labs(x = "n Shared Posts", y = "n Reactions (Durchschnitt)",
        title = "Durchschnittliche Reactions-per-Bildarten: ",
-       subtitle = "Pic Inhalt",
+       subtitle = "Bilder Inhalt",
        caption = "Quelle: Carolina")
 
 ggsave("images/fb_plot_FOTO_n.png", bg = "white")

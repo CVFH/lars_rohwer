@@ -20,18 +20,30 @@ format.str <- "%Y-%m-%dT%H:%M:%S"
 data_facebook_agregada <- data_facebook_agregada %>% 
   mutate(fecha_posix = as.POSIXct(Fecha, format.str, tz = "GMT"))
 
+# algunas correcciones de textos. #########
+
+data_facebook_completa$FOTO %>% unique()
+data_facebook_completa$TEMA1 %>% unique()
+data_facebook_completa$Grund %>% unique()
+ 
+data_facebook_completa <- data_facebook_completa %>% 
+  mutate(Grund = ifelse(Grund=="böse", "Diskussion", Grund)) %>% 
+  mutate(across(where(is.character), ~str_to_title(.)))
+
 ########## ACHTUNG POR AHORA NO CAMBIE NADA SOLO COPIE Y PEGUE DE INSTA
 # Y CAMBIE INSTA POR FB. HAY QUE CHIQUIAR
 # Preparo data long para considerar todos los casos de reaccion en simultaneo. ######
 
 data_facebook_long <- data_facebook_completa %>% 
-  pivot_longer(cols = c(LIKES, comments, cliks, compartida), names_to = "reaccion", values_to = "n_reaccion")
+  pivot_longer(cols = c(LIKES, comments, cliks, compartida), names_to = "reaccion", values_to = "n_reaccion") %>% 
+  mutate(across(where(is.character), ~str_to_title(.)))
 
 
 data_facebook_engagement <- data_facebook_completa %>% 
   mutate(engagement = LIKES + comments + compartida,
          engagement_plus = engagement + cliks,
-         engagement_plusplus = engagement_plus + Alcance)
+         engagement_plusplus = engagement_plus + Alcance) %>% 
+  mutate(across(where(is.character), ~str_to_title(.)))
 
 # DESCRIPTIVO UNIVARIADO: LIKES ###########
 
@@ -47,9 +59,10 @@ plot_fotos <- data_facebook_long %>%
   theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),legend.position = "bottom",
         plot.title = element_text(hjust = 0.5),
         plot.subtitle = element_text(hjust = 0.5),
-        axis.text.x = element_text(angle = 90) ) + 
+        axis.text.x = element_text(angle = 90),
+        text = element_text(size = 16) ) + 
   labs(x = "", y = "", fill = "",
-       title = "Durchschnittlicher Reactions-per-Bildarten: ",
+       title = "Durchschnittliche Reactions-per-Bildarten: ",
        subtitle = "Wörter vs. Bilderrn",
        caption = "Quelle: Carolina")
 
@@ -59,7 +72,7 @@ plot_pro_spon <- data_facebook_long %>%
   group_by(pro_spon, reaccion) %>% 
   summarise(n_ = sum(n_reaccion, na.rm=T)) %>% 
   subset(!is.na(pro_spon))  %>% 
-  ggplot(aes(pro_spon %>% fct_relevel("gebastelt", "spontan"),
+  ggplot(aes(pro_spon %>% fct_relevel("Gebastelt", "Spontan"),
              n_, 
              fill= reaccion)) +
   geom_col() +
@@ -68,9 +81,10 @@ plot_pro_spon <- data_facebook_long %>%
         legend.position = "bottom",
         plot.title = element_text(hjust = 0.5),
         plot.subtitle = element_text(hjust = 0.5),
-        axis.text.x = element_text(angle = 90) ) + 
+        axis.text.x = element_text(angle = 90),
+        text = element_text(size = 16) ) + 
   labs(x = "", y = "", fill = "",
-       title = "Durchschnittlicher Reactions-per-Bildarten: ",
+       title = "Durchschnittliche Reactions-per-Bildarten: ",
        subtitle = "Spontan vs. Gebastelt",
        caption = "Quelle: Carolina")
 
@@ -95,9 +109,10 @@ plot_FOTO <- data_facebook_long %>%
   theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),legend.position = "bottom",
         plot.title = element_text(hjust = 0.5),
         plot.subtitle = element_text(hjust = 0.5),
-        axis.text.x = element_text(angle = 90) ) + 
+        axis.text.x = element_text(angle = 90),
+        text = element_text(size = 16) ) + 
   labs(x = "", y = "", fill = "",
-       title = "Durchschnittlicher Reactions-per-Bildarten: ",
+       title = "Durchschnittliche Reactions-per-Bildarten: ",
        subtitle = "Bilder Inhalt",
        caption = "Quelle: Carolina")
 
@@ -122,9 +137,10 @@ plot_TEMA1 <- data_facebook_long %>%
   theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),legend.position = "bottom",
         plot.title = element_text(hjust = 0.5),
         plot.subtitle = element_text(hjust = 0.5),
-        axis.text.x = element_text(angle = 90) ) + 
+        axis.text.x = element_text(angle = 90) ,
+        text = element_text(size = 16)) + 
   labs(x = "", y = "", fill = "",
-       title = "Durchschnittlicher Reactions-per-Post: ",
+       title = "Durchschnittliche Reactions-per-Post: ",
        subtitle = "Themen",
        caption = "Quelle: Carolina")
 
@@ -148,10 +164,11 @@ plot_Grund <- data_facebook_long %>%
   theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),legend.position = "bottom",
         plot.title = element_text(hjust = 0.5),
         plot.subtitle = element_text(hjust = 0.5),
-        axis.text.x = element_text(angle = 90) ) + 
+        axis.text.x = element_text(angle = 90),
+        text = element_text(size = 16) ) + 
   labs(x = "", y = "", fill = "",
-       title = "Durchschnittlicher Reactions-per-Post: ",
-       subtitle = "Grund/ Gefühl",
+       title = "Durchschnittliche Reactions-per-'Grund'",
+       subtitle = "Grund / Gefühl",
        caption = "Quelle: Carolina")
 
 ggsave("images/fb_plot_GRUND.png", bg = "white")
@@ -161,18 +178,20 @@ ggsave("images/fb_plot_GRUND.png", bg = "white")
 facet_plot_fotos_n <- data_facebook_long %>% 
   group_by(img_word, reaccion) %>% 
   summarise(n_reaccion = sum(n_reaccion, na.rm=T),
-            N = n()) %>% 
+            N = n()/4) %>% 
   subset(!is.na(img_word))  %>% 
   ggplot(aes( y = n_reaccion, x = N, colour= img_word, label = img_word)) +
-  geom_label() +
+  geom_label(size=6) +
   facet_wrap( ~ reaccion) +
   theme_minimal() +
+  scale_x_continuous(breaks = function(z) seq(0, range(z)[2], by = 10)) +    scale_y_continuous(breaks = function(z) seq(0, range(z)[2], by = 250)) +
   theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),legend.position = "none",
         plot.title = element_text(hjust = 0.5),
         plot.subtitle = element_text(hjust = 0.5),
-        axis.text.x = element_text(angle = 90) ) + 
-  labs(x = "n Shared Posts", y = "n Reactions (durchschnitt)",
-       title = "Durchschnittlicher Reactions-per-Bildarten: ",
+        axis.text.x = element_text(angle = 90) ,
+        text = element_text(size = 16)) + 
+  labs(x = "n Shared Posts", y = "n Reactions (Durchschnitt)",
+       title = "Durchschnittliche Reactions-per-Bildarten: ",
        subtitle = "Wörter vs. Bilderrn",
        caption = "Quelle: Carolina")
 
@@ -181,17 +200,20 @@ ggsave("images/fb_plot_facet_fotos_n.png", bg = "white")
 plot_fotos_n <- data_facebook_long %>% 
   group_by(img_word) %>% 
   summarise(n_reaccion = sum(n_reaccion, na.rm=T),
-            N = n()) %>% 
+            N = n()/4) %>% 
   subset(!is.na(img_word))  %>% 
   ggplot(aes( y = n_reaccion, x = N, colour= img_word, label = img_word)) +
-  geom_label() +
+  geom_label(size=6) +
   theme_minimal() +
+  scale_x_continuous(breaks = function(z) seq(0, range(z)[2], by = 10)) +
+  scale_y_continuous(breaks = function(z) seq(0, range(z)[2], by = 250)) +
   theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),legend.position = "none",
         plot.title = element_text(hjust = 0.5),
         plot.subtitle = element_text(hjust = 0.5),
-        axis.text.x = element_text(angle = 90) ) + 
-  labs(x = "n Shared Posts", y = "n Reactions (durchschnitt)",
-       title = "Durchschnittlicher Reactions-per-Bildarten: ",
+        axis.text.x = element_text(angle = 90),
+        text = element_text(size = 16) ) + 
+  labs(x = "n Shared Posts", y = "n Reactions (Durchschnitt)",
+       title = "Durchschnittliche Reactions-per-Bildarten: ",
        subtitle = "Wörter vs. Bilderrn",
        caption = "Quelle: Carolina")
 
@@ -200,18 +222,21 @@ ggsave("images/fb_plot_fotos_n.png", bg = "white")
 plot_pro_n <- data_facebook_long %>% 
   group_by(pro_spon) %>% 
   summarise(n_reaccion = sum(n_reaccion, na.rm=T),
-            N = n()) %>% 
+            N = n()/4) %>% 
   subset(!is.na(pro_spon))  %>% 
   ggplot(aes( y = n_reaccion, x = N, colour= pro_spon, label = pro_spon)) +
-  geom_label() +
+  geom_label(size=6) +
   theme_minimal() +
+  scale_x_continuous(breaks = function(z) seq(0, range(z)[2], by = 10)) +
+  scale_y_continuous(breaks = function(z) seq(0, range(z)[2], by = 250)) +
   theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),legend.position = "none",
         plot.title = element_text(hjust = 0.5),
         plot.subtitle = element_text(hjust = 0.5),
-        axis.text.x = element_text(angle = 90) ) + 
-  labs(x = "n Shared Posts", y = "n Reactions (durchschnitt)",
-       title = "Durchschnittlicher Reactions-per-Bildarten: ",
-       subtitle = "Spontan vs. Profesionell",
+        axis.text.x = element_text(angle = 90),
+        text = element_text(size = 16) ) + 
+  labs(x = "n Shared Posts", y = "n Reactions (Durchschnitt)",
+       title = "Durchschnittliche Reactions-per-Bildarten: ",
+       subtitle = "Spontan vs. Professionell",
        caption = "Quelle: Carolina")
 
 ggsave("images/fb_plot_prospon_n.png", bg = "white")
@@ -219,17 +244,19 @@ ggsave("images/fb_plot_prospon_n.png", bg = "white")
 plot_FOTO_n <- data_facebook_long %>% 
   group_by(FOTO) %>% 
   summarise(n_reaccion = sum(n_reaccion, na.rm=T),
-            N = n()) %>% 
+            N = n()/4) %>% 
   subset(!is.na(FOTO))  %>% 
   ggplot(aes( y = n_reaccion, x = N, colour= FOTO, label = FOTO)) +
-  geom_label() +
+  geom_label(size=6) +
   theme_minimal() +
+  scale_x_continuous(breaks = function(z) seq(0, range(z)[2], by = 10)) +    scale_y_continuous(breaks = function(z) seq(0, range(z)[2], by = 250)) +
   theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),legend.position = "none",
         plot.title = element_text(hjust = 0.5),
         plot.subtitle = element_text(hjust = 0.5),
-        axis.text.x = element_text(angle = 90) ) + 
-  labs(x = "n Shared Posts", y = "n Reactions (durchschnitt)",
-       title = "Durchschnittlicher Reactions-per-Bildarten: ",
+        axis.text.x = element_text(angle = 90),
+        text = element_text(size = 16) ) + 
+  labs(x = "n Shared Posts", y = "n Reactions (Durchschnitt)",
+       title = "Durchschnittliche Reactions-per-Bildarten: ",
        subtitle = "Pic Inhalt",
        caption = "Quelle: Carolina")
 
@@ -238,17 +265,20 @@ ggsave("images/fb_plot_FOTO_n.png", bg = "white")
 plot_THEMA_n <- data_facebook_long %>% 
   group_by(TEMA1) %>% 
   summarise(n_reaccion = sum(n_reaccion, na.rm=T),
-            N = n()) %>% 
+            N = n()/4) %>% 
   subset(!is.na(TEMA1))  %>% 
   ggplot(aes( y = n_reaccion, x = N, colour= TEMA1, label = TEMA1)) +
-  geom_label() +
+  geom_label(size=6) +
   theme_minimal() +
+  scale_x_continuous(breaks = function(z) seq(0, range(z)[2], by = 10)) +
+  scale_y_continuous(breaks = function(z) seq(0, range(z)[2], by = 250)) +
   theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),legend.position = "none",
         plot.title = element_text(hjust = 0.5),
         plot.subtitle = element_text(hjust = 0.5),
-        axis.text.x = element_text(angle = 90) ) + 
-  labs(x = "n Shared Posts", y = "n Reactions (durchschnitt)",
-       title = "Durchschnittlicher Reactions-per-Post: ",
+        axis.text.x = element_text(angle = 90),
+        text = element_text(size = 16)) + 
+  labs(x = "n Shared Posts", y = "n Reactions (Durchschnitt)",
+       title = "Durchschnittliche Reactions-per-Post: ",
        subtitle = "Themen",
        caption = "Quelle: Carolina")
 
@@ -257,18 +287,21 @@ ggsave("images/fb_plot_THEMA_n.png", bg = "white")
 plot_Grund_n <- data_facebook_long %>% 
   group_by(Grund) %>% 
   summarise(n_reaccion = sum(n_reaccion, na.rm=T),
-            N = n()) %>% 
+            N = n()/4) %>% 
   subset(!is.na(Grund))  %>% 
   ggplot(aes( y = n_reaccion, x = N, colour= Grund, label = Grund)) +
-  geom_label() +
+  geom_label(size=6) +
   theme_minimal() +
+  scale_x_continuous(breaks = function(z) seq(0, range(z)[2], by = 10)) +
+  scale_y_continuous(breaks = function(z) seq(0, range(z)[2], by = 250)) +
   theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),legend.position = "none",
         plot.title = element_text(hjust = 0.5),
         plot.subtitle = element_text(hjust = 0.5),
-        axis.text.x = element_text(angle = 90) ) + 
-  labs(x = "n Shared Posts", y = "n Reactions (durchschnitt)",
-       title = "Durchschnittlicher Reactions-per-Post: ",
-       subtitle = "Gefühl",
+        axis.text.x = element_text(angle = 90) ,
+        text = element_text(size = 16)) + 
+  labs(x = "n Shared Posts", y = "n Reactions (Durchschnitt)",
+       title = "Durchschnittliche Reactions-per-'Grund'",
+       subtitle = "Grund / Gefühl",
        caption = "Quelle: Carolina")
 
 ggsave("images/fb_plot_GRUND_n.png", bg = "white")
@@ -284,7 +317,8 @@ plot_TEMA1box <- data_facebook_completa %>%
   theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),legend.position = "none",
         plot.title = element_text(hjust = 0.5),
         plot.subtitle = element_text(hjust = 0.5),
-        axis.text.x = element_text(angle = 90) ) + 
+        axis.text.x = element_text(angle = 90),
+        text = element_text(size = 16) ) + 
   labs(x = "", y = "",
        title = "Abweichung Likes-per-Thema ",
        subtitle = "",
@@ -336,10 +370,14 @@ plot_evdata_facebook_long  <- evdata_facebook_long  %>%
   geom_line(aes(date, n_Reaction, colour = Reaction)) +
   geom_smooth(aes(date, n_Reaction, colour = Reaction), se=F) +
   theme_minimal() +
-  labs(title= "xxxx",
+  labs(title= "Erfolg per Datum",
        #subtitle = "xxxx",
-       caption = "xxxx") +
-  theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),axis.text.x = element_text(angle = 90))  + 
+       caption = "Quelle: Carolina") +
+  theme(panel.border = element_blank(), 
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        axis.text.x = element_text(angle = 90),
+        text = element_text(size = 16))  + 
   scale_x_date(date_breaks = "months" , date_labels = "%b-%y")
 
 ggsave("images/fb_plot_ev1.png", bg = "white")
@@ -349,10 +387,14 @@ plotaverage_evdata_facebook_long  <- evdata_facebook_long  %>%
   geom_line(aes(date, average_Reaction, colour = Reaction)) +
   geom_smooth(aes(date, average_Reaction, colour = Reaction), se=F) +
   theme_minimal() +
-  labs(title= "xxxx",
+  labs(title= "Durchschnittliche Erfolg per Datum",
        #subtitle = "xxxx",
-       caption = "xxxx") +
-  theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),axis.text.x = element_text(angle = 90))  + 
+       caption = "Quelle: Carolina") +
+  theme(panel.border = element_blank(), 
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        axis.text.x = element_text(angle = 90),
+        text = element_text(size = 16))  + 
   scale_x_date(date_breaks = "months" , date_labels = "%b-%y")
 
 ggsave("images/fb_plot_ev2.png", bg = "white")
@@ -364,10 +406,14 @@ plot2average_evdata_facebook_long  <- evdata_facebook_long  %>%
   geom_line(aes(date, average_Reaction, colour = Reaction)) +
   geom_smooth(aes(date, average_Reaction, colour = Reaction), se=F) +
   theme_minimal() +
-  labs(title= "xxxx",
+  labs(title= "Durchschnittliche Erfolg per Datum",
        #subtitle = "xxxx",
-       caption = "xxxx") +
-  theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),axis.text.x = element_text(angle = 90))  + 
+       caption = "Quelle: Carolina") +
+  theme(panel.border = element_blank(), 
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        axis.text.x = element_text(angle = 90),
+        text = element_text(size = 16))  + 
   scale_x_date(date_breaks = "months" , date_labels = "%b-%y")
 
 ggsave("images/fb_plot_ev3.png", bg = "white")
@@ -380,9 +426,9 @@ plot3average_evdata_facebook_long  <- evdata_facebook_long  %>%
   geom_line(aes(date, average_Reaction, colour = Reaction)) +
   geom_smooth(aes(date, average_Reaction, colour = Reaction), se=F) +
   theme_minimal() +
-  labs(title= "xxxx",
+  labs(title= "Durchschnittliche Erfolg per Datum",
        #subtitle = "xxxx",
-       caption = "xxxx") +
+       caption = "Quelle: Carolina") +
   theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),axis.text.x = element_text(angle = 90))  + 
   scale_x_date(date_breaks = "months" , date_labels = "%b-%y")
 
@@ -406,7 +452,7 @@ top_posts_facebook <- data_facebook_post %>%
 top_posts_facebook %>% write.csv("top15fb.csv")
 
 leasttop_posts_facebook <- data_facebook_post %>% 
-  tail(15)
+  tail(60)
 
 leasttop_posts_facebook %>% write.csv("leasttop15fb.csv")
 

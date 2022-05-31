@@ -14,6 +14,12 @@ library(tm)
 
 data_insta_completa <- read.csv("data_insta_completa.csv")
 
+# mini correcciones #####
+
+data_insta_completa <- data_insta_completa %>% 
+  mutate(Grund = ifelse(Grund=="böse", "Diskussion", Grund))  %>% 
+  mutate(across(where(is.character), ~str_to_title(.)))
+
 # DESCRIPTIVO UNIVARIADO: LIKES ###########
 
 plot_fotos <- data_insta_completa %>% 
@@ -30,7 +36,8 @@ plot_fotos <- data_insta_completa %>%
         axis.text.x = element_text(angle = 90),
         panel.border = element_blank(),
         panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank()) + 
+        panel.grid.minor = element_blank(),
+        text = element_text(size = 16)) + 
   labs(x = "", y = "",
        title = "Durchschnittlicher Likes-per-Bildarten: ",
        subtitle = "Wörter vs. Bilderrn",
@@ -49,7 +56,8 @@ plot_pro <- data_insta_completa %>%
   theme(panel.border = element_blank(),         panel.grid.major = element_blank(),         panel.grid.minor = element_blank(),legend.position = "none",
         plot.title = element_text(hjust = 0.5),
         plot.subtitle = element_text(hjust = 0.5),
-        axis.text.x = element_text(angle = 90) ) + 
+        axis.text.x = element_text(angle = 90) ,         
+        text = element_text(size = 16) ) + 
   labs(x = "", y = "",
        title = "Durchschnittlicher Likes-per-Bildarten: ",
        subtitle = "Spontan vs. Gebastelt",
@@ -69,9 +77,10 @@ plot_FOTO <- data_insta_completa %>%
         legend.position = "none",
         plot.title = element_text(hjust = 0.5),
         plot.subtitle = element_text(hjust = 0.5),
-        axis.text.x = element_text(angle = 90) ) + 
+        axis.text.x = element_text(angle = 90) ,         
+        text = element_text(size = 16) ) + 
   labs(x = "", y = "",
-       title = "Durchschnittlicher Likes-per-Bildarten: ",
+       title = "Durchschnittliche Likes-per-Bildarten: ",
        subtitle = "Bilder Inhalt",
        caption = "Quelle: Carolina")
 
@@ -88,9 +97,10 @@ plot_TEMA1 <- data_insta_completa %>%
   theme(panel.border = element_blank(),         panel.grid.major = element_blank(),         panel.grid.minor = element_blank(),legend.position = "none",
         plot.title = element_text(hjust = 0.5),
         plot.subtitle = element_text(hjust = 0.5),
-        axis.text.x = element_text(angle = 90) ) + 
+        axis.text.x = element_text(angle = 90) ,         
+        text = element_text(size = 16) ) + 
   labs(x = "", y = "",
-       title = "Durchschnittlicher Likes-per-Thema ",
+       title = "Durchschnittliche Likes-per-Thema ",
        subtitle = "",
        caption = "Quelle: Carolina")
 
@@ -105,14 +115,17 @@ plot_fotos_n <- data_insta_completa %>%
   subset(!is.na(img_word))  %>% 
   #mutate(img_word = fct_reorder(img_word, desc(LIKES)))  %>%
   ggplot(aes(N, LIKES, colour= img_word, label = img_word)) +
-  geom_label() +
+  geom_label(size=6) +
   theme_minimal() +
+  scale_x_continuous(breaks = function(z) seq(0, range(z)[2], by = 10)) + 
+  scale_y_continuous(breaks = function(z) seq(0, range(z)[2], by = 10)) +
   theme(panel.border = element_blank(),         panel.grid.major = element_blank(),         panel.grid.minor = element_blank(),legend.position = "none",
         plot.title = element_text(hjust = 0.5),
         plot.subtitle = element_text(hjust = 0.5),
-        axis.text.x = element_text(angle = 90) ) + 
-  labs(x = "n Posts", y = "Likes (durchschnitt)",
-       title = "Durchschnittlicher Likes-per-Bildarten: ",
+        axis.text.x = element_text(angle = 90) ,         
+        text = element_text(size = 16) ) + 
+  labs(x = "n Shared Posts", y = "Likes (Durchschnitt)",
+       title = "Durchschnittliche Likes-per-Bildarten: ",
        subtitle = "Wörter vs. Bilderrn",
        caption = "Quelle: Carolina")
 
@@ -125,15 +138,21 @@ plot_pro_n <- data_insta_completa %>%
   subset(!is.na(pro_spon))  %>% 
   #mutate(img_word = fct_reorder(img_word, desc(LIKES)))  %>%
   ggplot(aes(N, LIKES, colour= pro_spon, label = pro_spon)) +
-  geom_label() +
+  geom_label(size=6) +
   theme_minimal() +
-  theme(panel.border = element_blank(),         panel.grid.major = element_blank(),         panel.grid.minor = element_blank(),legend.position = "none",
+  scale_x_continuous(breaks = function(z) seq(0, range(z)[2], by = 10)) +
+  scale_y_continuous(breaks = function(z) seq(0, range(z)[2], by = 10)) +
+  theme(panel.border = element_blank(),         
+        panel.grid.major = element_blank(),         
+        panel.grid.minor = element_blank(),
+        legend.position = "none",
         plot.title = element_text(hjust = 0.5),
         plot.subtitle = element_text(hjust = 0.5),
-        axis.text.x = element_text(angle = 90) ) + 
-  labs(x = "n Posts", y = "Likes (durchschnitt)",
-       title = "Durchschnittlicher Likes-per-Bildarten: ",
-       subtitle = "Spontan vs. Profesionell",
+        axis.text.x = element_text(angle = 90) ,        
+        text = element_text(size = 16) ) + 
+  labs(x = "n Shared Posts", y = "Likes (Durchschnitt)",
+       title = "Durchschnittliche Likes-per-Bildarten: ",
+       subtitle = "Spontan vs. Professionell",
        caption = "Quelle: Carolina")
 
 ggsave("images/instagram_plot_pro_n.png", bg = "white")
@@ -145,14 +164,17 @@ plot_FOTO_n <- data_insta_completa %>%
   subset(!is.na(FOTO))  %>% 
   #mutate(img_word = fct_reorder(img_word, desc(LIKES)))  %>%
   ggplot(aes(N, LIKES, colour= FOTO, label = FOTO)) +
-  geom_label() +
+  geom_label(size=6) +
   theme_minimal() +
+  scale_x_continuous(breaks = function(z) seq(0, range(z)[2], by = 10)) + 
+  scale_y_continuous(breaks = function(z) seq(0, range(z)[2], by = 10)) +
   theme(panel.border = element_blank(),         panel.grid.major = element_blank(),         panel.grid.minor = element_blank(),legend.position = "none",
         plot.title = element_text(hjust = 0.5),
         plot.subtitle = element_text(hjust = 0.5),
-        axis.text.x = element_text(angle = 90) ) + 
-  labs(x = "n Posts", y = "Likes (durchschnitt)",
-       title = "Durchschnittlicher Likes-per-Bildarten: ",
+        axis.text.x = element_text(angle = 90) ,         
+        text = element_text(size = 16) ) + 
+  labs(x = "n Shared Posts", y = "Likes (Durchschnitt)",
+       title = "Durchschnittliche Likes-per-Bildarten: ",
        subtitle = "Inhalt des Bildern",
        caption = "Quelle: Carolina")
 
@@ -165,14 +187,20 @@ plot_THEMA_n <- data_insta_completa %>%
   subset(!is.na(TEMA1))  %>% 
   #mutate(img_word = fct_reorder(img_word, desc(LIKES)))  %>%
   ggplot(aes(N, LIKES, colour= TEMA1, label = TEMA1)) +
-  geom_label() +
+  geom_label(size=6) +
   theme_minimal() +
-  theme(panel.border = element_blank(),         panel.grid.major = element_blank(),         panel.grid.minor = element_blank(),legend.position = "none",
+  scale_x_continuous(breaks = function(z) seq(0, range(z)[2], by = 10)) + 
+  scale_y_continuous(breaks = function(z) seq(0, range(z)[2], by = 10)) +
+  theme(panel.border = element_blank(),         
+        panel.grid.major = element_blank(),        
+        panel.grid.minor = element_blank(),
+        legend.position = "none",
         plot.title = element_text(hjust = 0.5),
         plot.subtitle = element_text(hjust = 0.5),
-        axis.text.x = element_text(angle = 90) ) + 
-  labs(x = "n Posts", y = "Likes (durchschnitt)",
-       title = "Durchschnittlicher Likes-per-Thema: ",
+        axis.text.x = element_text(angle = 90) ,         
+        text = element_text(size = 16) ) + 
+  labs(x = "n Shared Posts", y = "Likes (Durchschnitt)",
+       title = "Durchschnittliche Likes-per-Thema: ",
        subtitle = "",
        caption = "Quelle: Carolina")
 
@@ -185,14 +213,20 @@ plot_Grund_n <- data_insta_completa %>%
   subset(!is.na(Grund))  %>% 
   #mutate(img_word = fct_reorder(img_word, desc(LIKES)))  %>%
   ggplot(aes(N, LIKES, colour= Grund, label = Grund)) +
-  geom_label() +
+  geom_label(size=6) +
   theme_minimal() +
-  theme(panel.border = element_blank(),         panel.grid.major = element_blank(),         panel.grid.minor = element_blank(),legend.position = "none",
+  scale_x_continuous(breaks = function(z) seq(0, range(z)[2], by = 10)) + 
+  scale_y_continuous(breaks = function(z) seq(0, range(z)[2], by = 10)) +
+  theme(panel.border = element_blank(),        
+        panel.grid.major = element_blank(),       
+        panel.grid.minor = element_blank(),
+        legend.position = "none",
         plot.title = element_text(hjust = 0.5),
         plot.subtitle = element_text(hjust = 0.5),
-        axis.text.x = element_text(angle = 90) ) + 
-  labs(x = "n Posts", y = "Likes (durchschnitt)",
-       title = "Durchschnittlicher Likes-per-Grund ",
+        axis.text.x = element_text(angle = 90) ,        
+        text = element_text(size = 16) ) + 
+  labs(x = "n Shared Posts", y = "Likes (Durchschnitt)",
+       title = "Durchschnittliche Likes-per-Grund ",
        subtitle = "",
        caption = "Quelle: Carolina")
 
@@ -206,10 +240,14 @@ plot_TEMA1box <- data_insta_completa %>%
   ggplot(aes(TEMA1, LIKES, fill= TEMA1)) +
   geom_boxplot() +
   theme_minimal() +
-  theme(panel.border = element_blank(),         panel.grid.major = element_blank(),         panel.grid.minor = element_blank(),legend.position = "none",
+  theme(panel.border = element_blank(),         
+        panel.grid.major = element_blank(),         
+        panel.grid.minor = element_blank(),
+        legend.position = "none",
         plot.title = element_text(hjust = 0.5),
         plot.subtitle = element_text(hjust = 0.5),
-        axis.text.x = element_text(angle = 90) ) + 
+        axis.text.x = element_text(angle = 90) ,         
+        text = element_text(size = 16) ) + 
   labs(x = "", y = "",
        title = "Abweichung Likes-per-Thema ",
        subtitle = "",
@@ -236,10 +274,14 @@ plot_evdata_insta_completa <- evdata_insta_completa %>%
   geom_col(aes(date, likes/posts), fill = "lightgreen", colour = "black") +
   geom_smooth(aes(date, likes/posts), se=F) +
   theme_minimal() +
-  labs(title= "Cantidad de likes promedio recibidos por fecha",
+  labs(title= "Durchschnittliche Likes per Datum",
        #subtitle = "xxxx",
-       caption = "xxxx") +
-  theme(panel.border = element_blank(),         panel.grid.major = element_blank(),         panel.grid.minor = element_blank(),axis.text.x = element_text(angle = 90))  + 
+       caption = "Quelle: Carolina :D") +
+  theme(panel.border = element_blank(),         
+        panel.grid.major = element_blank(),        
+        panel.grid.minor = element_blank(),
+        axis.text.x = element_text(angle = 90),
+        text = element_text(size = 16))  + 
   scale_x_date(date_breaks = "months" , date_labels = "%b-%y")
 
 ggsave("images/instagram_plot_ev1.png", bg = "white")
@@ -251,10 +293,14 @@ plot2_evdata_insta_completa <- evdata_insta_completa %>%
   geom_line(aes(date, posts), colour = "red") +
   geom_smooth(aes(date, posts), colour = "pink", se =F) +
   theme_minimal() +
-  labs(title= "xxxx",
-       #subtitle = "xxxx",
-       caption = "xxxx") +
-  theme(panel.border = element_blank(),         panel.grid.major = element_blank(),         panel.grid.minor = element_blank(),axis.text.x = element_text(angle = 90))  + 
+  labs(title= "Likes & Posts",
+       subtitle = "per Datum, Insgesamt",
+       caption = "Quelle: Carolina") +
+  theme(panel.border = element_blank(),         
+        panel.grid.major = element_blank(),         
+        panel.grid.minor = element_blank(),
+        axis.text.x = element_text(angle = 90),
+        text = element_text(size = 16))  + 
   scale_x_date(date_breaks = "months" , date_labels = "%b-%y")
 
 ggsave("images/instagram_plot_ev2.png", bg = "white")
@@ -268,10 +314,15 @@ plot3_evdata_insta_completa <- evdata_insta_completa %>%
   geom_line(aes(date, posts), colour = "red", alpha = 0.7) +
   geom_smooth(aes(date, posts), colour = "pink", se =F, alpha = 0.7) +
   theme_minimal() +
-  labs(title= "xxxx",
-       #subtitle = "xxxx"
-       caption = "xxxx") +
-  theme(panel.border = element_blank(),         panel.grid.major = element_blank(),         panel.grid.minor = element_blank(),axis.text.x = element_text(angle = 90))  + 
+  labs(title= "Likes & Posts",
+       subtitle = "per Datum",
+       caption = "Quelle: Carolina") +
+  theme(panel.border = element_blank(),         
+        panel.grid.major = element_blank(),         
+        panel.grid.minor = element_blank(),
+        axis.text.x = element_text(angle = 90),
+        text = element_text(size = 16),
+        legend.position = "bottom")  + 
   scale_x_date(date_breaks = "months" , date_labels = "%b-%y")
 
 ggsave("images/instagram_plot_ev3.png", bg = "white")

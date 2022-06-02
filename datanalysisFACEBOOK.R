@@ -559,7 +559,8 @@ publico_fb <- readxl::read_xlsx("publico_fb.xlsx")
 
 publico_fb_long <- publico_fb %>% 
   pivot_longer(cols=c("Mujeres", "Hombres"), names_to = "Geschlecht", values_to = "Prozentanteil") %>% 
-  mutate(Geschlecht = ifelse(Geschlecht=="Mujeres","Frauen", "Herren"))
+  mutate(Geschlecht = ifelse(Geschlecht=="Mujeres","Frauen", "Herren"),
+         Prozentanteil = as.numeric(Prozentanteil)) 
 
 plot_publico_genero_fb <- publico_fb_long %>% 
   subset(Plataforma=="Facebook") %>% 
@@ -577,20 +578,3 @@ plot_publico_genero_fb <- publico_fb_long %>%
        caption = "Quelle: Facebook Analyitics")
 
 ggsave("images/publikum_fb.png", bg = "white")
-
-plot_publico_genero_insta <- publico_fb_long %>% 
-  subset(Plataforma=="Instagram") %>% 
-  ggplot(aes(Edad, Prozentanteil, fill=Geschlecht), colour="black") +
-  geom_col(position="dodge") +
-  theme_minimal()+
-  theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),legend.position = "none",
-        plot.title = element_text(hjust = 0.5),
-        plot.subtitle = element_text(hjust = 0.5),
-        axis.text.x = element_text(angle = 90) ,
-        text = element_text(size = 16)) + 
-  labs(x = "Alter", y = "Prozentanteil",
-       title = "Publikum: Instagram",
-       #subtitle = "per Thema (Durchschnitt)",
-       caption = "Quelle: Facebook Analyitics")
-
-ggsave("images/publikum_insta.png", bg = "white")

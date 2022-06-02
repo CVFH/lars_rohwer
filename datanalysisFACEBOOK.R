@@ -492,3 +492,105 @@ df_fbfiltered <- data_facebook_engagement %>%
 
 cortest <- cor(df_fbfiltered, method = "pearson", use = "complete.obs") 
 
+df_fbfiltered2 <- data_facebook_completa %>% 
+  select(c(
+    Alcance,
+    LIKES,
+    #rtas,
+    cliks,
+    comments,
+    compartida
+  )) #%>% 
+
+cortest2 <- cor(df_fbfiltered2, method = "pearson", use = "complete.obs") %>% round(3)
+
+
+# ejemplo de no correlacion #############
+
+
+plot_Grund_ej <- data_facebook_completa %>% 
+   group_by(Grund) %>% 
+  summarise(n_LIKES = mean(LIKES, na.rm=T),
+            n_comments = mean(comments, na.rm=T)) %>% 
+  ggplot(aes( y = n_comments, x = n_LIKES, colour= Grund, label = Grund)) +
+  geom_label(size=6) +
+  theme_minimal() +
+  scale_x_continuous(breaks = function(z) seq(0, range(z)[2], by = 10)) +
+  scale_y_continuous(breaks = function(z) seq(0, range(z)[2], by = 5)) +
+  theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),legend.position = "none",
+        plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        axis.text.x = element_text(angle = 90) ,
+        text = element_text(size = 16)) + 
+  labs(x = "Likes", y = "Comments",
+       title = "Comments vs Likes",
+       subtitle = "per Grund / Gefühl (Durchschnitt)",
+       caption = "Quelle: Carolina")
+
+
+ggsave("images/beispiel_grund.png", bg = "white")
+
+plot_THEMA_ej <- data_facebook_completa %>% 
+  group_by(TEMA1) %>% 
+  summarise(n_LIKES = mean(LIKES, na.rm=T),
+            n_comments = mean(comments, na.rm=T)) %>% 
+  ggplot(aes( y = n_comments, x = n_LIKES, colour= TEMA1, label = TEMA1)) +
+  geom_label(size=6) +
+  theme_minimal() +
+  scale_x_continuous(breaks = function(z) seq(0, range(z)[2], by = 10)) +
+  scale_y_continuous(breaks = function(z) seq(0, range(z)[2], by = 5)) +
+  theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),legend.position = "none",
+        plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        axis.text.x = element_text(angle = 90) ,
+        text = element_text(size = 16)) + 
+  labs(x = "Likes", y = "Comments",
+       title = "Comments vs Likes",
+       subtitle = "per Thema (Durchschnitt)",
+       caption = "Quelle: Carolina")
+
+
+ggsave("images/beispiel_TEMA.png", bg = "white")
+
+
+# publico #############
+
+publico_fb <- readxl::read_xlsx("publico_fb.xlsx")
+
+publico_fb_long <- publico_fb %>% 
+  pivot_longer(cols=c("Mujeres", "Hombres"), names_to = "Geschlecht", values_to = "Prozentanteil") %>% 
+  mutate(Geschlecht = ifelse(Geschlecht=="Mujeres","Frauen", "Herren"))
+
+plot_publico_genero_fb <- publico_fb_long %>% 
+  subset(Plataforma=="Facebook") %>% 
+  ggplot(aes(Edad, Prozentanteil, fill=Geschlecht), colour="black") +
+    geom_col(position="dodge") +
+    theme_minimal()+
+  theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),legend.position = "none",
+        plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        axis.text.x = element_text(angle = 90) ,
+        text = element_text(size = 16)) + 
+  labs(x = "Alter", y = "Prozentanteil",
+       title = "Publikum: Facebook",
+       #subtitle = "per Thema (Durchschnitt)",
+       caption = "Quelle: Facebook Analyitics")
+
+ggsave("images/publikum_fb.png", bg = "white")
+
+plot_publico_genero_insta <- publico_fb_long %>% 
+  subset(Plataforma=="Instagram") %>% 
+  ggplot(aes(Edad, Prozentanteil, fill=Geschlecht), colour="black") +
+  geom_col(position="dodge") +
+  theme_minimal()+
+  theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),legend.position = "none",
+        plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        axis.text.x = element_text(angle = 90) ,
+        text = element_text(size = 16)) + 
+  labs(x = "Alter", y = "Prozentanteil",
+       title = "Publikum: Instagram",
+       #subtitle = "per Thema (Durchschnitt)",
+       caption = "Quelle: Facebook Analyitics")
+
+ggsave("images/publikum_insta.png", bg = "white")
